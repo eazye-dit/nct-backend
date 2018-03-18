@@ -1,9 +1,6 @@
 from flask.ext.login import UserMixin
 from sqlalchemy.schema import ForeignKey
 from sqlalchemy import Column, Boolean, Integer, String, DateTime, Text
-# We need to instantiate db and login objects from the nct package.
-# They have not yet been defined in __init__.py,
-# so this import will fail.
 from nct import db, login
 
 
@@ -62,7 +59,7 @@ class Vehicle(db.Model):
     owner = Column(Integer, ForeignKey(Owner.id), nullable=False)
     make = Column(String(30), nullable=False)
     model = Column(String(30), nullable=False)
-    year = Column(Integer(4), nullable=False)
+    year = Column(Integer, nullable=False)
     colour = Column(String(20), nullable=False)
     # fuel_type?
     # engine_size?
@@ -100,7 +97,9 @@ class Step(db.Model):
     __tablename__ = 'step'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(50), nullable=False)
+    description = Column(Text, nullable=False) # Method of testing
+    notes = Column(Text) # Notes
+    name = Column(String(50), nullable=False) # Step name, e.g. "Service Brake Pedal"
 
 class Failure(db.Model):
     # This is a table that defines failures in the NCT test.
@@ -109,7 +108,8 @@ class Failure(db.Model):
 
     id = Column(Integer, primary_key=True)
     step = Column(Integer, ForeignKey(Step.id), nullable=False)
-    name = Column(String(100), nullable=False)
+    item = Column(String(100), nullable=False)
+    name = Column(Text, nullable=False)
 
 class TestResult(db.Model):
     # The Result table only defines the points of failure on an appointment.

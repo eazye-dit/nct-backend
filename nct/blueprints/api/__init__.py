@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, make_response
 from datetime import datetime
+from nct import db
+from nct.models import *
 import re
 
 api = Blueprint('api', __name__, url_prefix='/api') # All routes based on @api will have its
@@ -53,16 +55,25 @@ def lookup_car(regnumber): # regnumber in the URI will be passed to the function
             }),
             400
         )
-    car = {
-        "status": 200,
-        "message": "Success",
-        "vehicle": {
-            "registration": regnumber,
-            "make": "FORD",
-            "model": "FIESTA",
-            "year": 2012,
-            "colour": "WHITE"
+
+    car = Vehicle.query.filter_by(registration=regnumber).first()
+    if car != None:
+        object = {
+            "status": 200,
+            "message": "Success",
+            "vehicle": {
+                "registration": car.registration,
+                "make": car.make,
+                "model": car.model,
+                "year": car.year,
+                "colour": car.colour
+            }
         }
-    }
-    return jsonify(car) # We return a jsonified representation of the object we created above
+    else:
+        object = {
+            "status": 404,
+            "message": "Not found"
+        }
+    # We return a jsonified representation of the object we created above
+    return make_response(jsonify(object), object["status"])
 
