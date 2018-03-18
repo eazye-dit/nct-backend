@@ -1,6 +1,6 @@
 from flask.ext.login import UserMixin
 from sqlalchemy.schema import ForeignKey
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Boolean, Integer, String, DateTime, Text
 # We need to instantiate db and login objects from the nct package.
 # They have not yet been defined in __init__.py,
 # so this import will fail.
@@ -18,8 +18,8 @@ class Account(db.Model, UserMixin):
     id = Column(Integer, primary_key=True)
     username = Column(String(20), nullable=False)
     password = Column(String(100), nullable=False)
-    fname = Column(String(30), nullable=False)
-    lname = Column(String(30), nullable=False)
+    f_name = Column(String(30), nullable=False)
+    l_name = Column(String(30), nullable=False)
     created_on = Column(DateTime, nullable=False)
     last_login = Column(DateTime)
 
@@ -34,8 +34,8 @@ class Owner(db.Model):
     __tablename__ = 'owner'
 
     id = Column(Integer, primary_key=True)
-    fname = Column(String(30), nullable=False)
-    lname = Column(String(30), nullable=False)
+    f_name = Column(String(30), nullable=False)
+    l_name = Column(String(30), nullable=False)
 
 class Role(db.Model):
     # Roles that an account can have, such as Administrator, Mechanic.
@@ -50,8 +50,8 @@ class AccountRole(db.Model):
     # be a Mechanic like this.
     __tablename__ = 'account_role'
 
-    uid = Column(Integer, ForeignKey(Account.id), primary_key=True)
-    rid = Column(Integer, ForeignKey(Role.id), primary_key=True)
+    u_id = Column(Integer, ForeignKey(Account.id), primary_key=True)
+    r_id = Column(Integer, ForeignKey(Role.id), primary_key=True)
     grant_date = Column(DateTime)
 
 class Vehicle(db.Model):
@@ -74,15 +74,49 @@ class Attribute(db.Model):
     __tablename__ = 'attribute'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String(20), nullable=False)
 
 class VehicleAttribute(db.Model):
     # Connects Vehicle and Attribute
     __tablename__ = 'vehicle_attribute'
 
-    vid = Column(Integer, ForeignKey(Vehicle.registration), primary_key=True)
-    aid = Column(Integer, ForeignKey(Attribute.id), primary_key=True)
+    registration = Column(String(11), ForeignKey(Vehicle.registration), primary_key=True)
+    a_id = Column(Integer, ForeignKey(Attribute.id), primary_key=True)
     value = Column(String(20))
 
 
-# TODO: Assignments, test results, and so on
+class Appointment(db.Model):
+    __tablename__ = 'appointment'
+
+    id = Column(Integer, primary_key=True)
+    registration = Column(String(11), ForeignKey(Vehicle.registration), nullable=False)
+    assigned = Column(Integer, ForeignKey(Account.id), nullable=False)
+    is_tested = Column(Boolean, nullable=False)
+    date = Column(DateTime, nullable=False)
+
+class Step(db.Model):
+    # This is the table that defines each step in the NCT test.
+    # Each entry is supposed to be a single step in the test.
+    __tablename__ = 'step'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50), nullable=False)
+
+class Failure(db.Model):
+    # This is a table that defines failures in the NCT test.
+    # Each entry is supposed to be a failure connected to a TestStep.
+    __tablename__ = 'failure'
+
+    id = Column(Integer, primary_key=True)
+    step = Column(Integer, ForeignKey(Step.id), nullable=False)
+    name = Column(String(100), nullable=False)
+
+class TestResult(db.Model):
+    # The Result table only defines the points of failure on an appointment.
+    # The less returned values from selecting results that match the appointment,
+    # the better the test went.
+    __tablename__ = 'result'
+
+    id = Column(Integer, primary_key=True)
+    appointment = Column(Integer, ForeignKey(Appointment.id), nullable=False)
+    failure = Column(Integer, ForeignKey(Failure.id), nullable=False)
