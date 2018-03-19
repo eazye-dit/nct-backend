@@ -9,13 +9,16 @@ import re
 api = Blueprint('api', __name__, url_prefix='/api') # All routes based on @api will have its
                                                     # base on the URI at /api/
 
+def endpoint(uri, method="GET"):
+    return {"uri": uri, "method": method}
+
 @api.route('/')
 def api_home():
     # The basic list of public endpoints
     endpoints = [
-        "/api/",
-        "/api/login/",
-        "/api/vehicle/:regnumber/"
+        endpoint("/api/"),
+        endpoint("/api/login/", "POST"),
+        endpoint("/api/vehicle/:regnumber/")
     ]
 
     if current_user.is_authenticated:
@@ -25,16 +28,19 @@ def api_home():
 
         if "Administrator" in roles:
             endpoints += [
-                "/api/admin/appointments/",
-                "/api/admin/appointment/:id/",
-                "/api/admin/new/appointment/",
-                "/api/admin/new/mechanic/"
+                endpoint("/api/admin/appointments/"),
+                endpoint("/api/admin/appointment/:id/"),
+                endpoint("/api/admin/appointment/:id/", "POST"),
+                endpoint("/api/admin/appointment/:id/", "DELETE"),
+                endpoint("/api/admin/new/appointment/"),
+                endpoint("/api/admin/new/mechanic/")
             ]
 
         if "Mechanic" in roles:
             endpoints += [
-                "/api/mechanic/appointments/",
-                "/api/mechanic/test/:regnumber/"
+                endpoint("/api/mechanic/appointments/"),
+                endpoint("/api/mechanic/test/:regnumber/"),
+                endpoint("/api/mechanic/test/:regnumber/", "POST")
             ]
 
         # If a user for some reason is both a mechanic and an administrator,
@@ -42,7 +48,8 @@ def api_home():
 
     return jsonify({
         "status": 200,
-        "available_endpoints": endpoints # Return the final list of endpoints
+        "available_endpoints": endpoints, # Return the final list of endpoints
+        "docs": "https://github.com/eazye-dit/nct-backend/wiki/Endpoints"
     })
 
 
