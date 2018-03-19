@@ -22,7 +22,7 @@ def api_home():
     ]
 
     if current_user.is_authenticated:
-        endpoints.append("/api/logout/") # Both administrators and mechanics can log out
+        endpoints.append(endpoint("/api/logout/")) # Both administrators and mechanics can log out
 
         roles = get_roles(current_user.id)
 
