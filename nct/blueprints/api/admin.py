@@ -1,24 +1,14 @@
 from nct.blueprints.api import api
 from nct.models import Appointment, Account
-from nct.utils import get_roles, get_car
+from nct.utils import get_roles, get_car, admin_required, format_appointment
 from flask_login import login_required, current_user
-from flask import jsonify, make_response
+from flask import jsonify, make_response, request, abort
 from datetime import datetime, timedelta
+from functools import wraps
 
 @api.route('/admin/appointments/')
-@login_required
+@admin_required
 def admin_appointments():
-    roles = get_roles(current_user.id)
-
-    if not "Administrator" in roles:
-        return make_response(
-            jsonify({
-                "status": 401,
-                "message": "Unauthorized"
-            }),
-            401
-        )
-
     # TODO: handle arguments according to documentation
 
     # Get appointments up to 5 days ahead
@@ -29,20 +19,39 @@ def admin_appointments():
         mechanic = Account.query.get(appointment.assigned) # And assigned mechanic information
 
         # And add it all to our response list
-        response.append({
-            "vehicle": car,
-            "assigned": {
-                "username": mechanic.username,
-                "first": mechanic.f_name,
-                "last": mechanic.l_name
-            },
-            "date": appointment.date,
-            "completed": appointment.is_tested
-        })
+        response.append(format_appointment(appointment))
 
     return jsonify({
         "status": 200,
         "message": "Success",
         "appointments": response
     })
+
+@api.route('/admin/appointment/<id>', methods=["GET", "POST", "DELETE"])
+@admin_required
+def admin_appointment(id):
+    appointment = Appointment.query.get(id)
+    if request.method == "POST":
+        abort(501) # Not implemented
+    elif request.method == "DELETE":
+        abort(501)
+    if not appointment:
+        abort(404) # Not found
+    else:
+        return jsonify({
+            "status": 200,
+            "message": "Success",
+            "appointment": format_appointment(appointment)
+        })
+
+@api.route('/admin/new/appointment', methods=["POST"])
+@admin_required
+def new_appointment():
+    abort(501)
+
+@api.route('/admin/new/mechanic', methods=["POST"])
+@admin_required
+def new_mechanic():
+    abort(501)
+
 

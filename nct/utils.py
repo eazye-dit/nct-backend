@@ -1,6 +1,8 @@
 from nct.models import *
 from flask import jsonify, make_response
 import re
+from functools import wraps
+from flask_login import login_required, current_user
 
 def endpoint(uri, desc, method="GET"):
     return {"uri": uri, "desc": desc, "method": method}
@@ -11,6 +13,39 @@ def bad_login():
 def get_roles(ident):
     # Get names of roles that the user has
     return [Role.query.get(x.r_id).name for x in AccountRole.query.filter_by(u_id = ident)]
+
+def admin_required(f):
+    @wraps(f)
+    @login_required
+    def decorated_func(*args, **kwargs):
+        roles = get_roles(current_user.id)
+        if not "Administrator" in roles:
+            return make_response(
+                jsonify({
+                    "status": 401,
+                    "message": "Unauthorized"
+                }),
+                401
+            )
+        return f(*args, **kwargs)
+    return decorated_func
+
+def mechanic_required(f):
+    # TODO: Make mechanic/admin_required the same decorator with an argument to decide which is required
+    @wraps(f)
+    @login_required
+    def decorated_func(*args, **kwargs):
+        roles = get_roles(current_user.id)
+        if not "Mechanic" in roles:
+            return make_response(
+                jsonify({
+                    "status": 401,
+                    "message": "Unauthorized"
+                }),
+                401
+            )
+        return f(*args, **kwargs)
+    return decorated_func
 
 def valid_registration(reg):
     """A simple function to check validity of registration numbers"""
@@ -49,3 +84,20 @@ def get_car(reg, details):
         return car
     else:
         return False
+
+def format_appointment(appointment):
+    car = get_car(appointment.registration, True) # Get car information
+    mechanic = Account.query.get(appointment.assigned) # And assigned mechanic information
+    # And add it all to our response list
+    return {
+        "id": appointment.id,
+        "vehicle": car,
+        "assigned": {
+            "username": mechanic.username,
+            "first": mechanic.f_name,
+            "last": mechanic.l_name
+        },
+        "date": appointment.date,
+        "completed": appointment.is_tested
+    }
+

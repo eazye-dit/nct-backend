@@ -5,11 +5,12 @@ from passlib.hash import pbkdf2_sha256
 from nct.models import *
 from nct.utils import *
 from nct.blueprints.api import endpoints as e
+from datetime import datetime
 
 api = Blueprint('api', __name__, url_prefix='/api') # All routes based on @api will have its
                                                     # base on the URI at /api/
 
-from nct.blueprints.api import admin # Load admin endpoints
+from nct.blueprints.api import admin, mechanic # Load admin and mechanic endpoints
 
 @api.route('/')
 def api_home():
