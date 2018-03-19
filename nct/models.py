@@ -8,10 +8,6 @@ from nct import db, login
 def get_user(ident):
     return Account.query.get(int(ident))
 
-def get_roles(ident):
-    # Get names of roles that the user has
-    return [Role.query.get(x.r_id).name for x in AccountRole.query.filter_by(u_id = ident)]
-
 class Account(db.Model, UserMixin):
     # This is the mechanic/administrator table.
     __tablename__ = 'account'
