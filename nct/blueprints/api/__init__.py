@@ -14,24 +14,27 @@ from nct.blueprints.api import admin, mechanic # Load admin and mechanic endpoin
 
 @api.route('/')
 def api_home():
+    method = request.args.get('method', default=None, type=str)
     # The basic list of public endpoints
     endpoints = e.public
 
     if current_user.is_authenticated:
         # Both administrators and mechanics can log out
-        endpoints.append(endpoint("/api/logout/", "Logs the user out"))
+        endpoints = endpoints + [endpoint("/api/logout/", "Logs the user out")]
 
         roles = get_roles(current_user.id)
 
         if "Administrator" in roles:
-            endpoints += e.admin
+            endpoints = endpoints + e.admin
 
         if "Mechanic" in roles:
-            endpoints += e.mechanic
+            endpoints = endpoints + e.mechanic
 
         # If a user for some reason is both a mechanic and an administrator,
         # all endpoints should be available to them.
 
+    if method is not None and method.upper() in ["GET", "POST", "DELETE"]:
+        endpoints = [x for x in endpoints if x["method"] == method.upper()]
     return jsonify({
         "status": 200,
         "available_endpoints": endpoints, # Return the final list of endpoints
