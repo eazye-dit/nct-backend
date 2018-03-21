@@ -9,17 +9,33 @@ from functools import wraps
 @api.route('/admin/appointments/')
 @admin_required
 def admin_appointments():
-    # TODO: handle arguments according to documentation
+    date = request.args.get('date', default=None, type=str)
+    ahead = request.args.get('ahead', default=5, type=int)
+    mech = request.args.get('mechanic', default=None, type=int)
 
-    # Get appointments up to 5 days ahead
-    appointments = Appointment.query.filter(Appointment.date < datetime.now() + timedelta(days=5))
+    d = datetime.now()
+    if date:
+        try:
+            d = datetime.strptime(date, '%Y-%m-%d')
+        except:
+            pass # Let d remain unchanged if the date input is wrongly formatted
+
+    appointments = Appointment.query.filter(
+                ((d <= Appointment.date) | (Appointment.is_tested == False)) &
+                (Appointment.date < d + timedelta(days=ahead))
+    ) # A bit of an ugly boolean, but basically: Return the appointments
+    # whose appointment dates have not passed (unless the car has not yet been
+    # tested), and whose appointment dates are within the range of the number of days
+    # to look ahead.
     response = []
     for appointment in appointments:
         car = get_car(appointment.registration, True) # Get car information
         mechanic = Account.query.get(appointment.assigned) # And assigned mechanic information
-
-        # And add it all to our response list
-        response.append(format_appointment(appointment))
+        if mech:
+            if mechanic.id == mech:
+                response.append(format_appointment(appointment))
+        else:
+            response.append(format_appointment(appointment))
 
     return jsonify({
         "status": 200,
