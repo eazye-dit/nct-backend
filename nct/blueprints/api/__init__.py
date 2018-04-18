@@ -20,7 +20,7 @@ def api_home():
 
     if current_user.is_authenticated:
         # Both administrators and mechanics can log out
-        endpoints = endpoints + [endpoint("/api/logout/", "Logs the user out")]
+        endpoints = endpoints + [endpoint("/logout/", "Logs the user out")]
 
         roles = get_roles(current_user.id)
 
@@ -41,24 +41,34 @@ def api_home():
         "docs": "https://github.com/eazye-dit/nct-backend/wiki/Endpoints"
     })
 
+@api.route('/whoami/')
+def whoami():
+    if current_user.is_authenticated:
+        roles = get_roles(current_user.id)
+    else:
+        roles = []
+    return jsonify({
+        "status": 200,
+        "roles": roles
+    })
 
 @api.route('/login/', methods=['POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('api.api_home')) # Redirect home if we're already authenticated
 
-    if not "password" in request.values and not "username" in request.values:
+    if not request.form.get("password", default=None) and not request.form.get("username", default=None):
         # TODO: using request.values is kind of hacky and should be reconsidered
         # If password and username is not found in the request body, we'll say it's a bad login.
         return bad_login()
 
-    user = Account.query.filter_by(username = request.values["username"]).first()
+    user = Account.query.filter_by(username = request.form["username"]).first()
 
     if user == None:
         # If we can't find a user with that username, call bad login
         return bad_login()
 
-    if pbkdf2_sha256.verify(request.values["password"], user.password): # Verify password!
+    if pbkdf2_sha256.verify(request.form["password"], user.password): # Verify password!
         login_user(user)
         user.last_login = datetime.now() # Refresh last_login
         db.session.commit()

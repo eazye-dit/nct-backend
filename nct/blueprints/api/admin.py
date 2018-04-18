@@ -22,7 +22,7 @@ def admin_appointments():
 
     appointments = Appointment.query.filter(
                 ((d <= Appointment.date) | (Appointment.is_tested == False)) &
-                (Appointment.date < d + timedelta(days=ahead))
+                (Appointment.date < d + timedelta(days=ahead))).order_by(Appointment.date.asc()
     ) # A bit of an ugly boolean, but basically: Return the appointments
     # whose appointment dates have not passed (unless the car has not yet been
     # tested), and whose appointment dates are within the range of the number of days
@@ -43,7 +43,7 @@ def admin_appointments():
         "appointments": response
     })
 
-@api.route('/admin/appointment/<id>', methods=["GET", "POST", "DELETE"])
+@api.route('/admin/appointment/<id>/', methods=["GET", "POST", "DELETE"])
 @admin_required
 def admin_appointment(id):
     appointment = Appointment.query.get(id)
@@ -60,12 +60,12 @@ def admin_appointment(id):
             "appointment": format_appointment(appointment)
         })
 
-@api.route('/admin/new/appointment', methods=["POST"])
+@api.route('/admin/new/appointment/', methods=["POST"])
 @admin_required
 def new_appointment():
     abort(501)
 
-@api.route('/admin/new/mechanic', methods=["POST"])
+@api.route('/admin/new/mechanic/', methods=["POST"])
 @admin_required
 def new_mechanic():
     abort(501)
