@@ -8,7 +8,7 @@ def endpoint(uri, desc, method="GET"):
     return {"uri": uri, "desc": desc, "method": method}
 
 def bad_login():
-    return make_response(jsonify({"status": 400, "message": "Login details incorrect"}), 400)
+    return make_response(jsonify({"status": 400, "message": "Login details incorrect"}), 401)
 
 def get_roles(ident):
     # Get names of roles that the user has
