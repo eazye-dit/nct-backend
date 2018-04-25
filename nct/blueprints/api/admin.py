@@ -1,4 +1,5 @@
 from nct.blueprints.api import api
+from nct import db
 from nct.models import Appointment, Account
 from nct.utils import get_roles, get_car, admin_required, format_appointment
 from flask_login import login_required, current_user
@@ -48,9 +49,21 @@ def admin_appointments():
 @admin_required
 def admin_appointment(id):
     appointment = Appointment.query.get(id)
+    if appointment == None:
+        return jsonify({
+            "status": 404,
+            "message": "Not found"
+        }), 404
     if request.method == "POST":
         abort(501) # Not implemented
     elif request.method == "DELETE":
+        appointment.is_deleted = True
+        db.session.commit()
+        return jsonify({
+            "status": 200,
+            "message": "Deleted",
+            "appointment": format_appointment(appointment)
+        })
         abort(501)
     if not appointment:
         abort(404) # Not found

@@ -98,6 +98,7 @@ def format_appointment(appointment):
             "last": mechanic.l_name
         },
         "date": appointment.date,
-        "completed": appointment.is_tested
+        "completed": appointment.is_tested,
+        "is_deleted": appointment.is_deleted
     }
 
