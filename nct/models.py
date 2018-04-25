@@ -91,6 +91,7 @@ class Appointment(db.Model):
     assigned = Column(Integer, ForeignKey(Account.id), nullable=False)
     is_tested = Column(Boolean, nullable=False)
     date = Column(DateTime, nullable=False)
+    is_deleted = Column(Boolean, nullable=False)
 
 class Step(db.Model):
     # This is the table that defines each step in the NCT test.

@@ -22,6 +22,7 @@ def admin_appointments():
 
     appointments = Appointment.query.filter(
                 ((d <= Appointment.date) | (Appointment.is_tested == False)) &
+                (Appointment.is_deleted == False) &
                 (Appointment.date < d + timedelta(days=ahead))).order_by(Appointment.date.asc()
     ) # A bit of an ugly boolean, but basically: Return the appointments
     # whose appointment dates have not passed (unless the car has not yet been
