@@ -40,3 +40,13 @@ def not_implemented(e):
         }),
         501
     )
+
+@app.errorhandler(403)
+def forbidden_handler(e):
+    return make_response(
+        jsonify({
+            "status": 403,
+            "message": "Unauthoried"
+        }),
+        403
+    )

@@ -1,5 +1,5 @@
 from nct.blueprints.api import api
-from nct.models import Appointment, Account
+from nct.models import Appointment, Account, Step, Failure
 from nct.utils import get_car, mechanic_required, format_appointment
 from flask_login import current_user
 from flask import jsonify, make_response, request, abort
@@ -24,9 +24,33 @@ def mechanic_appointments():
         "appointments": response
     })
 
-@api.route('/mechanic/test/<registration>', methods=["GET", "POST"])
+@api.route('/mechanic/test/<appointment>', methods=["GET", "POST"])
 @mechanic_required
-def test(registration):
+def test(appointment):
     if request.method == "POST":
         abort(501)
-    abort(501)
+    appointment = Appointment.query.get(appointment)
+    if appointment.assigned != current_user.id:
+        abort(403)
+    steps = []
+    for step in Step.query.all():
+        failures = []
+        for failure in Failure.query.filter_by(step=step.id).all():
+            failures.append({
+                "id": failure.id,
+                "item": failure.item,
+                "name": failure.name
+            })
+        steps.append({
+            "id": step.id,
+            "name": step.name,
+            "description": step.description,
+            "notes": step.notes,
+            "failures": failures
+        })
+    return jsonify({
+        "status": 200,
+        "message": "Success",
+        "steps": steps,
+        "appointment": format_appointment(appointment)
+    })
