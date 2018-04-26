@@ -1,6 +1,6 @@
 from nct.blueprints.api import api
 from nct import db
-from nct.models import Appointment, Account
+from nct.models import *
 from nct.utils import get_roles, get_car, admin_required, format_appointment
 from flask_login import login_required, current_user
 from flask import jsonify, make_response, request, abort
@@ -64,7 +64,6 @@ def admin_appointment(id):
             "message": "Deleted",
             "appointment": format_appointment(appointment)
         })
-        abort(501)
     if not appointment:
         abort(404) # Not found
     else:
@@ -73,6 +72,25 @@ def admin_appointment(id):
             "message": "Success",
             "appointment": format_appointment(appointment)
         })
+
+@api.route('/admin/mechanics/')
+@admin_required
+def mechanics():
+    mechs = []
+    mechanic_role = Role.query.filter_by(name="Mechanic").first()
+    for user in Account.query.all():
+        if AccountRole.query.filter_by(u_id=user.id, r_id=mechanic_role.id).first():
+            mechs.append({
+                "username": user.username,
+                "first": user.f_name,
+                "last": user.l_name,
+                "id": user.id
+            })
+    return jsonify({
+        "status": 200,
+        "message": "Success",
+        "mechanics": mechs
+    })
 
 @api.route('/admin/new/appointment/', methods=["POST"])
 @admin_required

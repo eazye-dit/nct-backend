@@ -28,7 +28,7 @@ def mechanic_appointments():
 @mechanic_required
 def test(appointment):
     if request.method == "POST":
-        abort(501)
+        abort(501) # only for mobile app
     appointment = Appointment.query.get(appointment)
     if appointment.assigned != current_user.id:
         abort(403)
