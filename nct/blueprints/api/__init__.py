@@ -64,7 +64,7 @@ def login():
 
     user = Account.query.filter_by(username = request.form["username"]).first()
 
-    if user == None:
+    if user == None or user.is_deleted:
         # If we can't find a user with that username, call bad login
         return bad_login()
 

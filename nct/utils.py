@@ -1,14 +1,15 @@
 from nct.models import *
-from flask import jsonify, make_response
+from flask import jsonify, abort, make_response
 import re
 from functools import wraps
 from flask_login import login_required, current_user
+from datetime import datetime
 
 def endpoint(uri, desc, method="GET"):
     return {"uri": uri, "desc": desc, "method": method}
 
 def bad_login():
-    return make_response(jsonify({"status": 400, "message": "Login details incorrect"}), 401)
+    return make_response(jsonify({"status": 401, "message": "Login details incorrect"}), 401)
 
 def get_roles(ident):
     # Get names of roles that the user has
@@ -19,14 +20,8 @@ def admin_required(f):
     @login_required
     def decorated_func(*args, **kwargs):
         roles = get_roles(current_user.id)
-        if not "Administrator" in roles:
-            return make_response(
-                jsonify({
-                    "status": 401,
-                    "message": "Unauthorized"
-                }),
-                401
-            )
+        if not "Administrator" in roles or current_user.is_deleted:
+            abort(401)
         return f(*args, **kwargs)
     return decorated_func
 
@@ -36,14 +31,8 @@ def mechanic_required(f):
     @login_required
     def decorated_func(*args, **kwargs):
         roles = get_roles(current_user.id)
-        if not "Mechanic" in roles:
-            return make_response(
-                jsonify({
-                    "status": 401,
-                    "message": "Unauthorized"
-                }),
-                401
-            )
+        if not "Mechanic" in roles or current_user.is_deleted:
+            abort(401)
         return f(*args, **kwargs)
     return decorated_func
 
@@ -106,6 +95,33 @@ def format_test(appointment):
             "failures": resultfail
         })
     return test
+
+def verify_appointment(content):
+    fields = ["date", "assigned", "vehicle"]
+    for field in fields:
+        if not field in content:
+            return False
+    try:
+        datetime.strptime(content["date"], "%Y-%m-%d %H:%M")
+    except:
+        return False
+    account = Account.query.get(content["assigned"])
+    if not account:
+        return False
+    role = Role.query.filter_by(name="Mechanic").first()
+    if not AccountRole.query.filter_by(u_id=account.id, r_id=role.id).first():
+        return False
+    if not Vehicle.query.get(content["vehicle"]):
+        return False
+    return True
+
+def verify_registration(content):
+    fields = ["username", "password", "f_name", "l_name"]
+    for field in fields:
+        if not field in content:
+            return False
+    return True
+
 
 def get_car(reg, details):
     c = Vehicle.query.get(reg)

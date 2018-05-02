@@ -2,7 +2,8 @@ from flask.ext.login import UserMixin
 from sqlalchemy.schema import ForeignKey
 from sqlalchemy import Column, Boolean, Integer, String, DateTime, Text
 from nct import db, login
-
+from datetime import datetime
+from passlib.hash import pbkdf2_sha256
 
 @login.user_loader
 def get_user(ident):
@@ -19,11 +20,20 @@ class Account(db.Model, UserMixin):
     l_name = Column(String(30), nullable=False)
     created_on = Column(DateTime, nullable=False)
     last_login = Column(DateTime)
+    is_deleted = Column(Boolean, nullable=False)
 
     def get_id(self):
         # Unsure if this function is needed,
         # I thought it might be used for login.user_loader above
         return self.id
+
+    def __init__(self, username, password, f_name, l_name):
+        self.username = username
+        self.password = pbkdf2_sha256.hash(password)
+        self.f_name = f_name
+        self.l_name = l_name
+        self.created_on = datetime.now()
+        self.is_deleted = False
 
 class Owner(db.Model):
     # This is the vehicle owner table I suppose
@@ -51,6 +61,11 @@ class AccountRole(db.Model):
     u_id = Column(Integer, ForeignKey(Account.id), primary_key=True)
     r_id = Column(Integer, ForeignKey(Role.id), primary_key=True)
     grant_date = Column(DateTime)
+
+    def __init__(self, u_id, r_id):
+        self.u_id = u_id
+        self.r_id = r_id
+        self.grant_date = datetime.now()
 
 class Vehicle(db.Model):
     __tablename__ = 'vehicle'
@@ -92,6 +107,13 @@ class Appointment(db.Model):
     is_tested = Column(Boolean, nullable=False)
     date = Column(DateTime, nullable=False)
     is_deleted = Column(Boolean, nullable=False)
+
+    def __init__(self, registration, assigned, date):
+        self.registration = registration
+        self.assigned = assigned
+        self.date = datetime.strptime(date, "%Y-%m-%d %H:%M")
+        self.is_deleted = False
+        self.is_tested = False
 
 class Step(db.Model):
     # This is the table that defines each step in the NCT test.

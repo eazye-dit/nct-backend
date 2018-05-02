@@ -1,9 +1,9 @@
 from nct.blueprints.api import api
 from nct import db
 from nct.models import *
-from nct.utils import get_roles, get_car, admin_required, format_appointment
+from nct.utils import get_roles, get_car, admin_required, format_appointment, verify_appointment, verify_registration
 from flask_login import login_required, current_user
-from flask import jsonify, make_response, request, abort
+from flask import jsonify, make_response, request, abort, redirect, url_for
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -92,14 +92,61 @@ def mechanics():
         "mechanics": mechs
     })
 
+@api.route('/admin/mechanic/<id>', methods=["GET", "DELETE"])
+@admin_required
+def get_mechanic(id):
+    role = Role.query.filter_by(name="Mechanic").first()
+    account = Account.query.get(id)
+    if not account:
+        abort(404)
+    if not AccountRole.query.filter_by(u_id=account.id, r_id=role.id).first():
+        return make_response(jsonify({
+            "status": 202,
+            "message": "The requested account exists, but is not a mechanic"
+        }), 202)
+    if request.method == "DELETE":
+        account.is_deleted = True
+        db.session.commit()
+        return jsonify({
+            "status": 200,
+            "message": "Mechanic deleted"
+        })
+    return jsonify({
+        "status": 200,
+        "message": "Success",
+        "mechanic": {
+            "username": account.username,
+            "first": account.f_name,
+            "last": account.l_name,
+            "id": account.id
+        }
+    })
+
 @api.route('/admin/new/appointment/', methods=["POST"])
 @admin_required
 def new_appointment():
-    abort(501)
+    content = request.get_json()
+    if not verify_appointment(content):
+        abort(400)
+    appointment = Appointment(content["vehicle"], content["assigned"], content["date"])
+    db.session.add(appointment)
+    db.session.commit()
+    return redirect(url_for('api.admin_appointment', id=appointment.id))
 
 @api.route('/admin/new/mechanic/', methods=["POST"])
 @admin_required
 def new_mechanic():
-    abort(501)
-
+    content = request.get_json()
+    role = Role.query.filter_by(name="Mechanic").first()
+    if not verify_registration(content):
+        abort(400)
+    if Account.query.filter_by(username=content["username"]).first():
+        abort(400)
+    account = Account(content["username"], content["password"], content["f_name"], content["l_name"])
+    db.session.add(account)
+    db.session.commit()
+    accountrole = AccountRole(account.id, role.id)
+    db.session.add(accountrole)
+    db.session.commit()
+    return redirect(url_for('api.get_mechanic', id=account.id))
 
