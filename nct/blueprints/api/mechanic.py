@@ -1,7 +1,7 @@
 from nct import db
 from nct.blueprints.api import api
-from nct.models import Appointment, Account, Step, Failure, TestResult
-from nct.utils import get_car, mechanic_required, format_appointment, verify_test
+from nct.models import Appointment, Account, Step, Failure, TestResult, TestResultFailure
+from nct.utils import get_car, mechanic_required, format_test, format_appointment, verify_test
 from flask_login import current_user
 from flask import jsonify, make_response, request, abort
 from datetime import datetime, timedelta
@@ -32,33 +32,11 @@ def test(appointment):
     if appointment.assigned != current_user.id:
         abort(403)
     if appointment.is_tested:
-        results = TestResult.query.filter_by(appointment=appointment.id).all()
-        test_result = {
+        return jsonify({
             "message": "Appointment is already completed",
-            "test": {
-                "id": appointment.id,
-                "results": []
-            }
-        }
-        for result in results:
-            step = Step.query.filter_by(id=result.step).first()
-            if result.failure:
-                f = Failure.query.filter_by(id=result.failure).first()
-                failure = {
-                    "id": f.id,
-                    "name": f.name,
-                    "item": f.item
-                }
-            else:
-                failure = None
-            test_result["test"]["results"].append({
-                "step": {
-                    "id": step.id,
-                    "name": step.name
-                },
-                "failure": failure,
-                "comment": result.comment})
-        return jsonify(test_result)
+            "status": 200,
+            "test": format_test(appointment.id)
+        })
     if request.method == "POST":
         content = request.get_json(silent=True)
         if content and verify_test(content):
@@ -70,22 +48,23 @@ def test(appointment):
                     # If it encounters a missing step, then call it a bad request
                     abort(400)
             for result in test["results"]:
-                if result["checked_id"] == None:
-                    pass
-                elif not Failure.query.filter_by(step=result["id"], id=result["checked_id"]).first():
-                    # if the checked failure is not a valid id in the database, raise Bad request
-                    abort(400)
-                db_result = TestResult(appointment.id, result["id"], result["checked_id"], result["comment"])
+                for failure in result["checked_id"]:
+                    if not Failure.query.filter_by(step=result["id"], id=failure).first():
+                        # if the checked failure is not a valid id in the database, raise Bad request
+                        abort(400)
+                    fail = TestResultFailure(appointment.id, failure)
+                    db.session.add(fail)
+                db_result = TestResult(appointment.id, result["id"], result["comment"])
                 db.session.add(db_result)
             appointment.is_tested = True
             db.session.commit()
             return jsonify({
                 "status": 200,
                 "message": "Success",
-                "test": test,
+                "test": format_test(appointment.id)
             })
         else:
-            abort(400)
+            return jsonify(content)
     steps = []
     for step in Step.query.all():
         failures = []

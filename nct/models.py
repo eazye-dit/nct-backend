@@ -119,13 +119,20 @@ class TestResult(db.Model):
     id = Column(Integer, primary_key=True)
     appointment = Column(Integer, ForeignKey(Appointment.id), nullable=False)
     step = Column(Integer, ForeignKey(Step.id), nullable=False)
-    failure = Column(Integer, ForeignKey(Failure.id))
     comment = Column(Text)
 
-    def __init__(self, appointment, step, failure, comment):
+    def __init__(self, appointment, step, comment):
         self.appointment = appointment
         self.step = step
-        if failure:
-            self.failure = failure
         if comment:
             self.comment = comment
+
+class TestResultFailure(db.Model):
+    __tablename__ = 'result_failure'
+
+    appointment = Column(Integer, ForeignKey(Appointment.id), nullable=False, primary_key=True)
+    failure = Column(Integer, ForeignKey(Failure.id), nullable=False, primary_key=True)
+
+    def __init__(self, appointment, failure):
+        self.appointment = appointment
+        self.failure = failure

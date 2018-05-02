@@ -83,6 +83,30 @@ def verify_test(content):
             return False
     return True
 
+def format_test(appointment):
+    test = {
+        "id": appointment,
+        "results": []
+    }
+    results = TestResult.query.filter_by(appointment=appointment).all()
+    testfails = TestResultFailure.query.filter_by(appointment=appointment).all()
+    fails = []
+    for testfail in testfails:
+        fails.append(Failure.query.get(testfail.failure))
+
+    for result in results:
+        step = Step.query.get(result.step)
+        resultfail = [{"id": x.id, "item": x.item, "name": x.name} for x in fails if x.step == result.step]
+        test["results"].append({
+            "comment": result.comment,
+            "step": {
+                "id": step.id,
+                "name": step.name
+            },
+            "failures": resultfail
+        })
+    return test
+
 def get_car(reg, details):
     c = Vehicle.query.get(reg)
     if c != None:
