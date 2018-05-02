@@ -24,7 +24,7 @@ def mechanic_appointments():
         "appointments": response
     })
 
-@api.route('/mechanic/test/<appointment>', methods=["GET", "POST"])
+@api.route('/mechanic/test/<appointment>/', methods=["GET", "POST"])
 @mechanic_required
 def test(appointment):
     if request.method == "POST":
