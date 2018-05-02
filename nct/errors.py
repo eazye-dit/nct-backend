@@ -31,6 +31,16 @@ def unauthorized_handler():
         401
     )
 
+@app.errorhandler(400)
+def bad_request(e):
+    return make_response(
+        jsonify({
+            "status": 400,
+            "message": "Bad request"
+        }),
+        400
+    )
+
 @app.errorhandler(501)
 def not_implemented(e):
     return make_response(

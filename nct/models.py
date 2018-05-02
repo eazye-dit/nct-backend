@@ -114,11 +114,18 @@ class Failure(db.Model):
     name = Column(Text, nullable=False)
 
 class TestResult(db.Model):
-    # The Result table only defines the points of failure on an appointment.
-    # The less returned values from selecting results that match the appointment,
-    # the better the test went.
     __tablename__ = 'result'
 
     id = Column(Integer, primary_key=True)
     appointment = Column(Integer, ForeignKey(Appointment.id), nullable=False)
-    failure = Column(Integer, ForeignKey(Failure.id), nullable=False)
+    step = Column(Integer, ForeignKey(Step.id), nullable=False)
+    failure = Column(Integer, ForeignKey(Failure.id))
+    comment = Column(Text)
+
+    def __init__(self, appointment, step, failure, comment):
+        self.appointment = appointment
+        self.step = step
+        if failure:
+            self.failure = failure
+        if comment:
+            self.comment = comment

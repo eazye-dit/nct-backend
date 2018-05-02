@@ -66,6 +66,23 @@ def valid_registration(reg):
     # This will effectively be the same as False when we check `if not valid_registration()`
     return prog.match(reg)
 
+def verify_test(content):
+    if not "test" in content:
+        return False
+    test = content["test"]
+    if not "id" in test or not "results" in test:
+        return False
+    if len(test["results"]) == 0:
+        return False
+    for result in test["results"]:
+        if not "id" in result:
+            return False
+        if not "checked_id" in result:
+            return False
+        if not "comment" in result:
+            return False
+    return True
+
 def get_car(reg, details):
     c = Vehicle.query.get(reg)
     if c != None:
