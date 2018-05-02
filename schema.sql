@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: nct
 -- ------------------------------------------------------
--- Server version	10.1.30-MariaDB
+-- Server version	10.1.31-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -31,7 +31,7 @@ CREATE TABLE `account` (
   `created_on` datetime DEFAULT CURRENT_TIMESTAMP,
   `last_login` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -65,12 +65,13 @@ CREATE TABLE `appointment` (
   `assigned` int(11) NOT NULL,
   `is_tested` tinyint(1) DEFAULT '0',
   `date` datetime NOT NULL,
+  `is_deleted` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `registration` (`registration`),
   KEY `assigned` (`assigned`),
   CONSTRAINT `appointment_ibfk_1` FOREIGN KEY (`registration`) REFERENCES `vehicle` (`registration`),
   CONSTRAINT `appointment_ibfk_2` FOREIGN KEY (`assigned`) REFERENCES `account` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -102,7 +103,7 @@ CREATE TABLE `failure` (
   PRIMARY KEY (`id`),
   KEY `step` (`step`),
   CONSTRAINT `failure_ibfk_1` FOREIGN KEY (`step`) REFERENCES `step` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -117,7 +118,7 @@ CREATE TABLE `owner` (
   `f_name` varchar(30) NOT NULL,
   `l_name` varchar(30) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -130,13 +131,31 @@ DROP TABLE IF EXISTS `result`;
 CREATE TABLE `result` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `appointment` int(11) NOT NULL,
-  `failure` int(11) NOT NULL,
+  `comment` text,
+  `step` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `appointment` (`appointment`),
-  KEY `failure` (`failure`),
-  CONSTRAINT `result_ibfk_1` FOREIGN KEY (`appointment`) REFERENCES `appointment` (`id`),
-  CONSTRAINT `result_ibfk_2` FOREIGN KEY (`failure`) REFERENCES `failure` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+  KEY `fk_result_appointment` (`appointment`),
+  KEY `fk_result_step` (`step`),
+  CONSTRAINT `fk_result_appointment` FOREIGN KEY (`appointment`) REFERENCES `appointment` (`id`),
+  CONSTRAINT `fk_result_step` FOREIGN KEY (`step`) REFERENCES `step` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `result_failure`
+--
+
+DROP TABLE IF EXISTS `result_failure`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `result_failure` (
+  `appointment` int(11) NOT NULL,
+  `failure` int(11) NOT NULL,
+  PRIMARY KEY (`appointment`,`failure`),
+  KEY `result_failure_fk` (`failure`),
+  CONSTRAINT `result_failure_appointment_fk` FOREIGN KEY (`appointment`) REFERENCES `appointment` (`id`),
+  CONSTRAINT `result_failure_fk` FOREIGN KEY (`failure`) REFERENCES `failure` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -166,7 +185,7 @@ CREATE TABLE `step` (
   `description` text NOT NULL,
   `notes` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -218,4 +237,4 @@ CREATE TABLE `vehicle_attribute` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-03-18 12:34:26
+-- Dump completed on 2018-05-02 10:44:36
