@@ -44,7 +44,7 @@ def valid_registration(reg):
     except ValueError:
         # If it's not a digit, we'll say it's not valid
         return False
-    if year > 12:
+    if year in range(12, 86):
         # If the year is 13 or higher, there is a third digit
         # (either 1 or 2 for registration before or after summer) after the year number.
         pattern = "^(\d{2})([12])([A-Za-z]{1,2})(\d{1,6})$"
@@ -125,7 +125,7 @@ def verify_registration(content):
 def verify_vehicle(content):
     fields = ["registration", "make", "model", "year", "vin", "colour", "owner"]
     for field in fields:
-        if not fields in content:
+        if not field in content:
             return False
     if not valid_registration(content["registration"]):
         return False
@@ -146,6 +146,8 @@ def get_car(reg, details):
             owner = Owner.query.get(c.owner)
             car["owner"] = {"first": owner.f_name.upper(), "last": owner.l_name.upper()}
             car["vin"] = c.vin
+            if owner.phone:
+                car["owner"]["phone"] = owner.phone
         return car
     else:
         return False

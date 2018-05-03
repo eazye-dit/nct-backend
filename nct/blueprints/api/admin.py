@@ -1,7 +1,7 @@
 from nct.blueprints.api import api
 from nct import db
 from nct.models import *
-from nct.utils import get_roles, get_car, admin_required, format_appointment, verify_appointment, verify_registration
+from nct.utils import *
 from flask_login import login_required, current_user
 from flask import jsonify, make_response, request, abort, redirect, url_for
 from datetime import datetime, timedelta
@@ -13,6 +13,7 @@ def admin_appointments():
     date = request.args.get('date', default=None, type=str)
     ahead = request.args.get('ahead', default=5, type=int)
     mech = request.args.get('mechanic', default=None, type=int)
+    completed = request.args.get('completed', default=False, type=bool)
 
     d = datetime.now()
     if date:
@@ -20,8 +21,10 @@ def admin_appointments():
             d = datetime.strptime(date, '%Y-%m-%d')
         except:
             pass # Let d remain unchanged if the date input is wrongly formatted
-
-    appointments = Appointment.query.filter(
+    if completed:
+        appointments = Appointment.query.filter_by(is_tested=True).order_by(Appointment.date.desc())
+    else:
+        appointments = Appointment.query.filter(
                 ((d <= Appointment.date) | (Appointment.is_tested == False)) &
                 (Appointment.is_deleted == False) &
                 (Appointment.date < d + timedelta(days=ahead))).order_by(Appointment.date.asc()
@@ -153,8 +156,10 @@ def new_mechanic():
 @admin_required
 def new_vehicle():
     content = request.get_json()
-    if not verify_vehicle(content) or Vehicle.query.get(content["registration"]):
+    if not verify_vehicle(content):
         abort(400)
+    if not Owner.query.get(content["owner"]):
+        abort(404)
     vehicle = Vehicle(content["registration"], content["make"], content["model"], content["year"], content["vin"], content["owner"], content["colour"])
     db.session.add(vehicle)
     db.session.commit()
@@ -179,7 +184,7 @@ def lookup_owner(id):
     owner = Owner.query.get(id)
     if not owner:
         abort(404)
-    o = {"f_name": owner.f_name, "l_name": owner.l_name}
+    o = {"f_name": owner.f_name, "l_name": owner.l_name, "id": owner.id}
     if owner.phone:
         o["phone"] = owner.phone
     return jsonify({

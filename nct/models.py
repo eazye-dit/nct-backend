@@ -89,12 +89,12 @@ class Vehicle(db.Model):
 
     def __init__(self, registration, make, model, year, vin, owner, colour):
         self.registration = registration
-        self.vin = vin
+        self.vin = vin.upper()
         self.owner = owner
-        self.make = make
-        self.model = model
+        self.make = make.upper()
+        self.model = model.upper()
         self.year = year
-        self.colour = colour
+        self.colour = colour.upper()
 
 class Attribute(db.Model):
     # Attributes that a vehicle can have, such as low rpm, diesel turbo...
