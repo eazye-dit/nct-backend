@@ -43,6 +43,12 @@ class Owner(db.Model):
     id = Column(Integer, primary_key=True)
     f_name = Column(String(30), nullable=False)
     l_name = Column(String(30), nullable=False)
+    phone = Column(String(20))
+
+    def __init__(self, f_name, l_name, phone):
+        self.f_name = f_name
+        self.l_name = l_name
+        self.phone = phone
 
 class Role(db.Model):
     # Roles that an account can have, such as Administrator, Mechanic.
@@ -80,6 +86,15 @@ class Vehicle(db.Model):
     # fuel_type?
     # engine_size?
     # May be defined as an attribute?
+
+    def __init__(self, registration, make, model, year, vin, owner, colour):
+        self.registration = registration
+        self.vin = vin
+        self.owner = owner
+        self.make = make
+        self.model = model
+        self.year = year
+        self.colour = colour
 
 class Attribute(db.Model):
     # Attributes that a vehicle can have, such as low rpm, diesel turbo...

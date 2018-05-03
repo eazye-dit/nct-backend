@@ -122,6 +122,14 @@ def verify_registration(content):
             return False
     return True
 
+def verify_vehicle(content):
+    fields = ["registration", "make", "model", "year", "vin", "colour", "owner"]
+    for field in fields:
+        if not fields in content:
+            return False
+    if not valid_registration(content["registration"]):
+        return False
+    return True
 
 def get_car(reg, details):
     c = Vehicle.query.get(reg)

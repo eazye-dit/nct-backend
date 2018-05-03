@@ -148,3 +148,42 @@ def new_mechanic():
     db.session.commit()
     return redirect(url_for('api.get_mechanic', id=account.id))
 
+
+@api.route('/admin/new/vehicle/', methods=["POST"])
+@admin_required
+def new_vehicle():
+    content = request.get_json()
+    if not verify_vehicle(content) or Vehicle.query.get(content["registration"]):
+        abort(400)
+    vehicle = Vehicle(content["registration"], content["make"], content["model"], content["year"], content["vin"], content["owner"], content["colour"])
+    db.session.add(vehicle)
+    db.session.commit()
+    return redirect(url_for('api.lookup_car', regnumber=vehicle.registration))
+
+@api.route('/admin/new/owner/', methods=["POST"])
+@admin_required
+def new_owner():
+    content = request.get_json()
+    fields = ["f_name", "l_name", "phone"]
+    for field in fields:
+        if field not in content:
+            abort(400)
+    owner = Owner(content["f_name"], content["l_name"], content["phone"])
+    db.session.add(owner)
+    db.session.commit()
+    return redirect(url_for('api.lookup_owner', id=owner.id))
+
+@api.route('/admin/owner/<id>/')
+@admin_required
+def lookup_owner(id):
+    owner = Owner.query.get(id)
+    if not owner:
+        abort(404)
+    o = {"f_name": owner.f_name, "l_name": owner.l_name}
+    if owner.phone:
+        o["phone"] = owner.phone
+    return jsonify({
+        "status": 200,
+        "message": "Success",
+        "owner": o
+    })
