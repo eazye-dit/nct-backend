@@ -49,29 +49,27 @@ def admin_appointments():
 @admin_required
 def admin_appointment(id):
     appointment = Appointment.query.get(id)
+    msg = "Success"
     if appointment == None:
-        return jsonify({
-            "status": 404,
-            "message": "Not found"
-        }), 404
+        abort(404)
     if request.method == "POST":
-        abort(501) # Not implemented
+        content = request.get_json()
+        if not verify_appointment(content):
+            abort(400)
+        if not content["vehicle"] == appointment.registration:
+            abort(403)
+        appointment.date = datetime.strptime(content["date"], "%Y-%m-%d %H:%M")
+        appointment.assigned = content["assigned"]
+        db.session.commit()
     elif request.method == "DELETE":
         appointment.is_deleted = True
         db.session.commit()
-        return jsonify({
-            "status": 200,
-            "message": "Deleted",
-            "appointment": format_appointment(appointment)
-        })
-    if not appointment:
-        abort(404) # Not found
-    else:
-        return jsonify({
-            "status": 200,
-            "message": "Success",
-            "appointment": format_appointment(appointment)
-        })
+        msg = "Deleted"
+    return jsonify({
+        "status": 200,
+        "message": msg,
+        "appointment": format_appointment(appointment)
+    })
 
 @api.route('/admin/mechanics/')
 @admin_required
