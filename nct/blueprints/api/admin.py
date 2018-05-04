@@ -6,6 +6,7 @@ from flask_login import login_required, current_user
 from flask import jsonify, make_response, request, abort, redirect, url_for
 from datetime import datetime, timedelta
 from functools import wraps
+from sqlalchemy import func
 
 @api.route('/admin/appointments/')
 @admin_required
@@ -61,7 +62,14 @@ def admin_appointment(id):
             abort(400)
         if not content["vehicle"] == appointment.registration:
             abort(403)
-        appointment.date = datetime.strptime(content["date"], "%Y-%m-%d %H:%M")
+        d = datetime.strptime(content["date"], "%Y-%m-%d %H:%M")
+        if not is_available(content["assigned"], d):
+            return make_response(jsonify({
+                    "status": 202,
+                    "message": "Mechanic is unavailable at that time"
+                }), 202
+            )
+        appointment.date = d
         appointment.assigned = content["assigned"]
         db.session.commit()
     elif request.method == "DELETE":
@@ -93,7 +101,7 @@ def mechanics():
         "mechanics": mechs
     })
 
-@api.route('/admin/mechanic/<id>', methods=["GET", "DELETE"])
+@api.route('/admin/mechanic/<id>/', methods=["GET", "DELETE"])
 @admin_required
 def get_mechanic(id):
     role = Role.query.filter_by(name="Mechanic").first()
@@ -120,6 +128,48 @@ def get_mechanic(id):
             "first": account.f_name,
             "last": account.l_name,
             "id": account.id
+        }
+    })
+
+
+@api.route('/admin/search/')
+@admin_required
+def search():
+    owner = request.args.get('owner', default=None, type=str)
+    if not owner:
+        abort(400)
+
+    owner_obj = Owner.query.filter(func.concat(Owner.f_name, ' ', Owner.l_name).like(owner)).first()
+    if not owner_obj:
+        return make_response(jsonify({
+                "status": 404,
+                "message": "Owner '{}' not found".format(owner)
+            }), 404
+        )
+
+    vehicles = Vehicle.query.filter_by(owner=owner_obj.id)
+
+    vehicle_list = []
+
+    for vehicle in vehicles:
+        vehicle_list.append({
+            "registration": vehicle.registration,
+            "make": vehicle.make,
+            "model": vehicle.model,
+            "year": vehicle.year,
+            "colour": vehicle.colour,
+            "vin": vehicle.vin
+        })
+
+    return jsonify({
+        "status": 200,
+        "message": "Success",
+        "owner": {
+            "id": owner_obj.id,
+            "f_name": owner_obj.f_name,
+            "l_name": owner_obj.l_name,
+            "vehicles": vehicle_list,
+            "phone": owner_obj.phone
         }
     })
 

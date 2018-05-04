@@ -3,7 +3,8 @@ from flask import jsonify, abort, make_response
 import re
 from functools import wraps
 from flask_login import login_required, current_user
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import between
 
 def endpoint(uri, desc, method="GET"):
     return {"uri": uri, "desc": desc, "method": method}
@@ -71,6 +72,10 @@ def verify_test(content):
         if not "comment" in result:
             return False
     return True
+
+def is_available(mech_id, app_date):
+    margin = timedelta(hours=1)
+    return not Appointment.query.filter_by(assigned=mech_id).filter(between(Appointment.date, app_date - margin, app_date + margin))
 
 def format_test(appointment):
     test = {
