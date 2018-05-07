@@ -1,12 +1,10 @@
 import os
 import tempfile
-
 import pytest
 import json
 import nct
 
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def client():
     db_fd, nct.app.config['DATABASE'] = tempfile.mkstemp()
     nct.app.config['TESTING'] = True

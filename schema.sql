@@ -30,8 +30,10 @@ CREATE TABLE `account` (
   `l_name` varchar(30) NOT NULL,
   `created_on` datetime DEFAULT CURRENT_TIMESTAMP,
   `last_login` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+  `is_deleted` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -71,7 +73,7 @@ CREATE TABLE `appointment` (
   KEY `assigned` (`assigned`),
   CONSTRAINT `appointment_ibfk_1` FOREIGN KEY (`registration`) REFERENCES `vehicle` (`registration`),
   CONSTRAINT `appointment_ibfk_2` FOREIGN KEY (`assigned`) REFERENCES `account` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -117,8 +119,9 @@ CREATE TABLE `owner` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `f_name` varchar(30) NOT NULL,
   `l_name` varchar(30) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -138,7 +141,7 @@ CREATE TABLE `result` (
   KEY `fk_result_step` (`step`),
   CONSTRAINT `fk_result_appointment` FOREIGN KEY (`appointment`) REFERENCES `appointment` (`id`),
   CONSTRAINT `fk_result_step` FOREIGN KEY (`step`) REFERENCES `step` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -237,4 +240,4 @@ CREATE TABLE `vehicle_attribute` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-05-02 10:44:36
+-- Dump completed on 2018-05-05 20:28:09

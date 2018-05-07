@@ -119,7 +119,7 @@ class Appointment(db.Model):
     id = Column(Integer, primary_key=True)
     registration = Column(String(11), ForeignKey(Vehicle.registration), nullable=False)
     assigned = Column(Integer, ForeignKey(Account.id), nullable=False)
-    is_tested = Column(Boolean, nullable=False)
+    is_tested = Column(DateTime)
     date = Column(DateTime, nullable=False)
     is_deleted = Column(Boolean, nullable=False)
 
@@ -128,7 +128,6 @@ class Appointment(db.Model):
         self.assigned = assigned
         self.date = datetime.strptime(date, "%Y-%m-%d %H:%M")
         self.is_deleted = False
-        self.is_tested = False
 
 class Step(db.Model):
     # This is the table that defines each step in the NCT test.

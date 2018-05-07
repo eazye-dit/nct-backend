@@ -23,10 +23,10 @@ def admin_appointments():
         except:
             pass # Let d remain unchanged if the date input is wrongly formatted
     if completed:
-        appointments = Appointment.query.filter_by(is_tested=True).order_by(Appointment.date.desc())
+        appointments = Appointment.query.filter(Appointment.is_tested != None).order_by(Appointment.date.desc())
     else:
         appointments = Appointment.query.filter(
-                ((d <= Appointment.date) | (Appointment.is_tested == False)) &
+                ((d <= Appointment.date) | (Appointment.is_tested == None)) &
                 (Appointment.is_deleted == False) &
                 (Appointment.date < d + timedelta(days=ahead))).order_by(Appointment.date.asc()
     ) # A bit of an ugly boolean, but basically: Return the appointments
@@ -76,6 +76,13 @@ def admin_appointment(id):
         appointment.is_deleted = True
         db.session.commit()
         msg = "Deleted"
+    if appointment.is_tested != None:
+        return jsonify({
+            "status": 200,
+            "message": msg,
+            "test": format_test(appointment.id),
+            "appointment": format_appointment(appointment)
+        })
     return jsonify({
         "status": 200,
         "message": msg,

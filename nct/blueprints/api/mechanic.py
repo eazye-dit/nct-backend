@@ -31,7 +31,7 @@ def test(appointment):
     appointment = Appointment.query.get(appointment)
     if appointment.assigned != current_user.id:
         abort(403)
-    if appointment.is_tested:
+    if appointment.is_tested != None:
         return jsonify({
             "message": "Appointment is already completed",
             "status": 200,
@@ -56,7 +56,7 @@ def test(appointment):
                     db.session.add(fail)
                 db_result = TestResult(appointment.id, result["id"], result["comment"])
                 db.session.add(db_result)
-            appointment.is_tested = True
+            appointment.is_tested = datetime.now()
             db.session.commit()
             return jsonify({
                 "status": 200,
