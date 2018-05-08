@@ -188,7 +188,7 @@ def new_appointment():
         abort(400)
 
     d = datetime.strptime(content["date"], "%Y-%m-%d %H:%M")
-    if not is_available(content["assigned"], d, ignore=appointment.id):
+    if not is_available(content["assigned"], d):
         return make_response(
             jsonify({
                 "status": 202,
