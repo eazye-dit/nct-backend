@@ -13,7 +13,7 @@ def mechanic_appointments():
     appointments = Appointment.query.filter_by(assigned=current_user.id).filter(
         (Appointment.date < datetime.now() + timedelta(days=5)) &
         (Appointment.is_deleted == False) &
-        (Appointment.is_tested == False)
+        (Appointment.is_tested == None)
     ).order_by(Appointment.date.asc())
     response = []
     for appointment in appointments:
