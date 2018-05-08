@@ -10,7 +10,11 @@ from datetime import datetime, timedelta
 @mechanic_required
 def mechanic_appointments():
     # Get appointments up to 5 days ahead
-    appointments = Appointment.query.filter_by(assigned=current_user.id).filter((Appointment.date < datetime.now() + timedelta(days=5)) & (Appointment.is_deleted == False) & (Appointment.is_tested == False)).order_by(Appointment.date.asc())
+    appointments = Appointment.query.filter_by(assigned=current_user.id).filter(
+        (Appointment.date < datetime.now() + timedelta(days=5)) &
+        (Appointment.is_deleted == False) &
+        (Appointment.is_tested == False)
+    ).order_by(Appointment.date.asc())
     response = []
     for appointment in appointments:
         car = get_car(appointment.registration, True) # Get car information

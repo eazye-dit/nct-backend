@@ -63,7 +63,7 @@ def admin_appointment(id):
         if not content["vehicle"] == appointment.registration:
             abort(403)
         d = datetime.strptime(content["date"], "%Y-%m-%d %H:%M")
-        if not is_available(content["assigned"], d):
+        if not is_available(content["assigned"], d, ignore=appointment.id):
             return make_response(jsonify({
                     "status": 202,
                     "message": "Mechanic is unavailable at that time"
@@ -186,6 +186,15 @@ def new_appointment():
     content = request.get_json()
     if not verify_appointment(content):
         abort(400)
+
+    d = datetime.strptime(content["date"], "%Y-%m-%d %H:%M")
+    if not is_available(content["assigned"], d, ignore=appointment.id):
+        return make_response(
+            jsonify({
+                "status": 202,
+                "message": "Mechanic is unavailable at that time"
+            }), 202
+        )
     appointment = Appointment(content["vehicle"], content["assigned"], content["date"])
     db.session.add(appointment)
     db.session.commit()

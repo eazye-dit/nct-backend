@@ -73,9 +73,13 @@ def verify_test(content):
             return False
     return True
 
-def is_available(mech_id, app_date):
+def is_available(mech_id, app_date, ignore=0):
     margin = timedelta(hours=1)
-    return not Appointment.query.filter_by(assigned=mech_id).filter(between(Appointment.date, app_date - margin, app_date + margin))
+    results = Appointment.query.filter_by(assigned=mech_id).filter(between(Appointment.date, app_date - margin, app_date + margin) & (Appointment.id != ignore)).all()
+    if len(results) > 0:
+        return False
+    else:
+        return True
 
 def format_test(appointment):
     test = {
