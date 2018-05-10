@@ -241,3 +241,6 @@ CREATE TABLE `vehicle_attribute` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2018-05-10  6:58:41
+
+INSERT INTO `account` (`username`, `password`, `f_name`, `l_name`)
+  VALUES ('admin', '$pbkdf2-sha256$29000$HcPYGyMkZExJSWmNEeIcYw$6KpAgTPyVFKy0pLtvDfbw0lbEO6B2nN00e/asVivrfY', 'admin', 'istrator');
