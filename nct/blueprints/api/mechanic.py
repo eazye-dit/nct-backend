@@ -1,3 +1,4 @@
+
 from nct import db
 from nct.blueprints.api import api
 from nct.models import Appointment, Account, Step, Failure, TestResult, TestResultFailure
@@ -50,12 +51,22 @@ def test(appointment):
                 # First check if the test result contains all steps
                 if not step.id in steps:
                     # If it encounters a missing step, then call it a bad request
-                    abort(400)
+                    return make_request(
+                        jsonify({
+                            "message": "Missing step: {}".format(step.id),
+                            "status": 400,
+                        }), 400
+                    )
             for result in test["results"]:
                 for failure in result["checked_id"]:
                     if not Failure.query.filter_by(step=result["id"], id=failure).first():
                         # if the checked failure is not a valid id in the database, raise Bad request
-                        abort(400)
+                        return make_request(
+                            jsonify({
+                                "message": "Step {} has no valid failure with id {}".format(result["id"], failure),
+                                "status": 400,
+                            }), 400
+                        )
                     fail = TestResultFailure(appointment.id, failure)
                     db.session.add(fail)
                 db_result = TestResult(appointment.id, result["id"], result["comment"])

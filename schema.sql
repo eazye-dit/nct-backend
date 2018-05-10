@@ -65,7 +65,7 @@ CREATE TABLE `appointment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `registration` varchar(11) NOT NULL,
   `assigned` int(11) NOT NULL,
-  `is_tested` tinyint(1) DEFAULT '0',
+  `is_tested` datetime DEFAULT NULL,
   `date` datetime NOT NULL,
   `is_deleted` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
@@ -141,7 +141,7 @@ CREATE TABLE `result` (
   KEY `fk_result_step` (`step`),
   CONSTRAINT `fk_result_appointment` FOREIGN KEY (`appointment`) REFERENCES `appointment` (`id`),
   CONSTRAINT `fk_result_step` FOREIGN KEY (`step`) REFERENCES `step` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -240,4 +240,4 @@ CREATE TABLE `vehicle_attribute` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-05-05 20:28:09
+-- Dump completed on 2018-05-10  6:58:41
